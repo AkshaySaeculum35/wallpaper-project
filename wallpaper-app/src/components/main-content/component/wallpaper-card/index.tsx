@@ -14,13 +14,20 @@ const WallpaperCard = ({ photo }: Props) => {
     navigate(`/wallpaper/${photo.id}`, { state: { photo } });
   };
 
-  const handleDownload = (e: React.MouseEvent) => {
+  const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const link = document.createElement('a');
-    link.href = photo.src.original;
-    link.download = `wallpaper-${photo.id}.jpg`;
-    link.target = '_blank';
-    link.click();
+    try {
+      const res = await fetch(photo.src.original);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `wallpaper-${photo.id}.jpg`;
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      window.open(photo.src.original, '_blank');
+    }
   };
 
   return (

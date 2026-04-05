@@ -34,12 +34,20 @@ const WallpaperDetailPage = () => {
 
   if (!photo) return null;
 
-  const handleDownload = (url: string, label: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `wallpaper-${photo.id}-${label}.jpg`;
-    link.target = '_blank';
-    link.click();
+  const handleDownload = async (url: string, label: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `wallpaper-${photo.id}-${label}.jpg`;
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      // fallback: open in new tab
+      window.open(url, '_blank');
+    }
   };
 
   const toggleFullView = () => {
