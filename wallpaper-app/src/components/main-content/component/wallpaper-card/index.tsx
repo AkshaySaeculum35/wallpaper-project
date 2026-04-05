@@ -1,14 +1,13 @@
-import { DownloadOutlined, ExpandOutlined } from "@ant-design/icons";
-import { Button } from "antd";
-import { useNavigate } from "react-router-dom";
-import type { PexelsPhoto } from "../../../../types";
+import { DownloadOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import type { PexelsPhoto } from '../../../../types';
 
-interface WallpaperCardProps {
+interface Props {
   photo: PexelsPhoto;
   index: number;
 }
 
-const WallpaperCard = ({ photo, index }: WallpaperCardProps) => {
+const WallpaperCard = ({ photo }: Props) => {
   const navigate = useNavigate();
 
   const handlePreview = () => {
@@ -17,69 +16,46 @@ const WallpaperCard = ({ photo, index }: WallpaperCardProps) => {
 
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = photo.src.original;
     link.download = `wallpaper-${photo.id}.jpg`;
-    link.target = "_blank";
+    link.target = '_blank';
     link.click();
   };
 
   return (
-    <div
-      className="wallpaper-card fade-in-up group relative cursor-pointer overflow-hidden rounded-2xl bg-[#111118]"
-      style={{ animationDelay: `${(index % 20) * 40}ms` }}
-      onClick={handlePreview}
-    >
+    <div className="wallpaper-card overflow-hidden rounded-lg bg-white shadow-sm" onClick={handlePreview}>
       {/* Image */}
-      <div className="aspect-video w-full overflow-hidden">
+      <div className="relative aspect-video overflow-hidden bg-gray-100">
         <img
           src={photo.src.large}
-          alt={photo.alt || "wallpaper"}
+          alt={photo.alt || 'wallpaper'}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="h-full w-full object-cover"
         />
+        {/* Action buttons on hover */}
+        <div className="card-actions absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40">
+          <button
+            onClick={(e) => { e.stopPropagation(); handlePreview(); }}
+            className="flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-medium text-gray-800 shadow-md transition hover:bg-gray-100"
+          >
+            <EyeOutlined /> Preview
+          </button>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-md transition hover:bg-blue-700"
+          >
+            <DownloadOutlined /> Download
+          </button>
+        </div>
       </div>
 
-      {/* Hover overlay */}
-      <div className="overlay absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60 backdrop-blur-[2px]">
-        <Button
-          type="primary"
-          icon={<ExpandOutlined />}
-          size="large"
-          onClick={(e) => {
-            e.stopPropagation();
-            handlePreview();
-          }}
-          style={{
-            background: "rgba(124,58,237,0.9)",
-            border: "none",
-            borderRadius: "50px",
-          }}
-        >
-          Preview
-        </Button>
-        <Button
-          icon={<DownloadOutlined />}
-          size="middle"
-          onClick={handleDownload}
-          style={{
-            background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            color: "white",
-            borderRadius: "50px",
-          }}
-        >
-          Download
-        </Button>
-      </div>
-
-      {/* Photographer */}
-      <div className="absolute bottom-0 left-0 right-0 translate-y-full bg-gradient-to-t from-black/80 to-transparent p-3 transition-transform duration-300 group-hover:translate-y-0">
-        <p className="truncate text-xs text-white/70">
-          📷 {photo.photographer}
-        </p>
+      {/* Footer */}
+      <div className="px-3 py-2">
+        <p className="truncate text-xs text-gray-500">📷 {photo.photographer}</p>
       </div>
     </div>
   );
 };
+
 export default WallpaperCard;

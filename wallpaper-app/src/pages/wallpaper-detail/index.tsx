@@ -1,14 +1,17 @@
 import {
   ArrowLeftOutlined,
+  CameraOutlined,
   CompressOutlined,
   DownloadOutlined,
+  ExpandAltOutlined,
   ExpandOutlined,
-  ExportOutlined,
-} from "@ant-design/icons";
-import { Button, Spin } from "antd";
-import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import type { PexelsPhoto } from "../../types";
+  FileImageOutlined,
+  LinkOutlined,
+} from '@ant-design/icons';
+import { Button, Divider, Spin, Tag } from 'antd';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import type { PexelsPhoto } from '../../types';
 
 const WallpaperDetailPage = () => {
   const navigate = useNavigate();
@@ -19,172 +22,192 @@ const WallpaperDetailPage = () => {
   const [fullView, setFullView] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // If navigated directly without state, go back
   useEffect(() => {
-    if (!photo) navigate("/", { replace: true });
+    if (!photo) navigate('/', { replace: true });
   }, [photo, navigate]);
 
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = photo!.src.original;
-    link.download = `wallpaper-${photo!.id}.jpg`;
-    link.target = "_blank";
+  useEffect(() => {
+    const handler = () => { if (!document.fullscreenElement) setFullView(false); };
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  if (!photo) return null;
+
+  const handleDownload = (url: string, label: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `wallpaper-${photo.id}-${label}.jpg`;
+    link.target = '_blank';
     link.click();
   };
 
   const toggleFullView = () => {
     if (!fullView) {
-      imgRef.current?.requestFullscreen?.().catch(() => {});
+      imgRef.current?.requestFullscreen?.().catch(() => { });
     } else {
-      document.exitFullscreen?.().catch(() => {});
+      document.exitFullscreen?.().catch(() => { });
     }
     setFullView((v) => !v);
   };
 
-  useEffect(() => {
-    const handler = () => {
-      if (!document.fullscreenElement) setFullView(false);
-    };
-    document.addEventListener("fullscreenchange", handler);
-    return () => document.removeEventListener("fullscreenchange", handler);
-  }, []);
+  const megapixels = ((photo.width * photo.height) / 1_000_000).toFixed(1);
+  const aspectRatio = (photo.width / photo.height).toFixed(2);
 
-  if (!photo) return null;
+  const downloadSizes = [
+    { label: 'Original', url: photo.src.original, desc: `${photo.width} × ${photo.height}` },
+    { label: 'Large 2x', url: photo.src.large2x, desc: '2560px' },
+    { label: 'Large', url: photo.src.large, desc: '1280px' },
+    { label: 'Medium', url: photo.src.medium, desc: '640px' },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-gray-50">
       {/* Top bar */}
-      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-white/5 bg-[#0a0a0f]/90 px-4 py-3 backdrop-blur-xl md:px-8">
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => navigate(-1)}
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "white",
-            borderRadius: "50px",
-          }}
-        >
+      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 shadow-sm">
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
           Back
         </Button>
-
         <div className="flex items-center gap-2">
           <Button
             icon={fullView ? <CompressOutlined /> : <ExpandOutlined />}
             onClick={toggleFullView}
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "white",
-              borderRadius: "50px",
-            }}
           >
-            <span className="hidden sm:inline">
-              {fullView ? "Exit Full View" : "Full View"}
-            </span>
+            <span className="hidden sm:inline">{fullView ? 'Exit Fullscreen' : 'Fullscreen'}</span>
           </Button>
-
-          <Button
-            icon={<ExportOutlined />}
-            href={photo.url}
-            target="_blank"
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "white",
-              borderRadius: "50px",
-            }}
-          >
-            <span className="hidden sm:inline">Pexels</span>
-          </Button>
-
           <Button
             type="primary"
             icon={<DownloadOutlined />}
-            onClick={handleDownload}
-            style={{
-              background: "linear-gradient(135deg, #7c3aed, #a855f7)",
-              border: "none",
-              borderRadius: "50px",
-            }}
+            onClick={() => handleDownload(photo.src.original, 'original')}
           >
             Download
           </Button>
         </div>
       </div>
 
-      {/* Main image area */}
-      <div className="relative flex min-h-[calc(100vh-57px)] flex-col items-center justify-center px-4 py-8 md:px-8">
-        {/* Blurred background */}
-        <div
-          className="pointer-events-none absolute inset-0 scale-110 bg-cover bg-center opacity-20 blur-3xl"
-          style={{ backgroundImage: `url(${photo.src.medium})` }}
-        />
-
-        {/* Image container */}
-        <div
-          className="fade-in-up relative z-10 w-full max-w-6xl overflow-hidden rounded-2xl shadow-2xl"
-          style={{ boxShadow: "0 40px 120px rgba(0,0,0,0.8)" }}
-        >
+      <div className="mx-auto max-w-5xl px-4 py-6">
+        {/* Image */}
+        <div className="overflow-hidden rounded-2xl bg-gray-200 shadow-md">
           {!loaded && (
-            <div className="skeleton flex aspect-video w-full items-center justify-center">
-              <Spin size="large" />
+            <div className="skeleton flex aspect-video items-center justify-center">
+              <Spin />
             </div>
           )}
           <img
             ref={imgRef}
             src={photo.src.large2x}
-            alt={photo.alt || "wallpaper"}
+            alt={photo.alt || 'wallpaper'}
             onLoad={() => setLoaded(true)}
-            className={`w-full object-contain transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0 absolute"}`}
+            className={`w-full object-contain ${loaded ? 'block' : 'hidden'}`}
           />
         </div>
 
-        {/* Info card */}
-        <div className="fade-in-up relative z-10 mt-6 w-full max-w-6xl rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-lg font-semibold text-white">
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {/* Left: main info */}
+          <div className="md:col-span-2 space-y-4">
+            {/* Title + photographer */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-5">
+              <h1 className="text-lg font-semibold text-gray-800">
                 {photo.alt || `Wallpaper #${photo.id}`}
               </h1>
-              <p className="mt-1 text-sm text-white/50">
-                Photo by{" "}
-                <a
-                  href={photo.photographer_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-violet-400 hover:underline"
-                >
-                  {photo.photographer}
-                </a>
-                {" · "}
-                {photo.width} × {photo.height}px
-              </p>
+              <Divider className="my-3" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <CameraOutlined />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Photographer</p>
+                  <a
+                    href={photo.photographer_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+                  >
+                    {photo.photographer} <LinkOutlined className="text-xs" />
+                  </a>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {/* Resolution badges */}
-              {[
-                { label: "Original", url: photo.src.original },
-                { label: "Large 2x", url: photo.src.large2x },
-                { label: "Large", url: photo.src.large },
-              ].map(({ label, url }) => (
-                <a
+            {/* Image specs */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-5">
+              <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <FileImageOutlined /> Image Details
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  { label: 'Width', value: `${photo.width}px` },
+                  { label: 'Height', value: `${photo.height}px` },
+                  { label: 'Megapixels', value: `${megapixels} MP` },
+                  { label: 'Aspect Ratio', value: aspectRatio },
+                ].map(({ label, value }) => (
+                  <div key={label} className="rounded-lg bg-gray-50 p-3 text-center">
+                    <p className="text-xs text-gray-400">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-700">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Avg color */}
+              <div className="mt-3 flex items-center gap-3">
+                <div
+                  className="h-8 w-8 rounded-lg border border-gray-200 shadow-sm"
+                  style={{ background: photo.avg_color }}
+                />
+                <div>
+                  <p className="text-xs text-gray-400">Average Color</p>
+                  <p className="text-sm font-medium text-gray-700">{photo.avg_color}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: download options */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-5">
+            <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <DownloadOutlined /> Download Sizes
+            </p>
+            <div className="space-y-2">
+              {downloadSizes.map(({ label, url, desc }) => (
+                <button
                   key={label}
-                  href={url}
-                  download={`wallpaper-${photo.id}-${label}.jpg`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 transition-colors hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-white"
+                  onClick={() => handleDownload(url, label)}
+                  className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-blue-300 hover:bg-blue-50"
                 >
-                  ↓ {label}
-                </a>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">{label}</p>
+                    <p className="text-xs text-gray-400">{desc}</p>
+                  </div>
+                  <DownloadOutlined className="text-blue-500" />
+                </button>
               ))}
             </div>
+
+            <Divider className="my-4" />
+
+            <a href={photo.url} target="_blank" rel="noreferrer">
+              <Button block icon={<LinkOutlined />}>
+                View on Pexels
+              </Button>
+            </a>
+
+            <div className="mt-3">
+              <Tag color="green" className="w-full text-center">Free to use</Tag>
+            </div>
+
+            {/* Full view */}
+            <button
+              onClick={toggleFullView}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 py-2 text-sm text-gray-500 transition hover:border-gray-300 hover:text-gray-700"
+            >
+              <ExpandAltOutlined />
+              {fullView ? 'Exit Fullscreen' : 'View Fullscreen'}
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default WallpaperDetailPage;

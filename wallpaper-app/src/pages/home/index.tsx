@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-
 import Header from "../../components/header";
-import HeroSlider from "../../components/hero-content";
-import type { Category } from "../../types";
+import HeroContent from "../../components/hero-content";
 import WallpaperGrid from "../../components/main-content";
 import { usePexels } from "../../hooks";
+import type { Category } from "../../types";
 
 const HomePage = () => {
   const [activeCategory, setActiveCategory] = useState<Category>("Featured");
@@ -35,15 +34,13 @@ const HomePage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-gray-50">
       <Header onSearch={handleSearch} />
-
-      <HeroSlider
+      <HeroContent
         slides={photos}
         activeCategory={activeCategory}
         onCategoryChange={handleCategoryChange}
       />
-
       <WallpaperGrid
         photos={photos}
         loading={loading}
@@ -53,4 +50,5 @@ const HomePage = () => {
     </div>
   );
 };
+
 export default HomePage;
