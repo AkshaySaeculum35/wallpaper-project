@@ -8,7 +8,7 @@ import {
   FileImageOutlined,
   LinkOutlined,
 } from '@ant-design/icons';
-import { Button, Divider, Spin, Tag } from 'antd';
+import { Button, Spin, Tag } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { PexelsPhoto } from '../../types';
@@ -62,13 +62,6 @@ const WallpaperDetailPage = () => {
   const megapixels = ((photo.width * photo.height) / 1_000_000).toFixed(1);
   const aspectRatio = (photo.width / photo.height).toFixed(2);
 
-  const downloadSizes = [
-    { label: 'Original', url: photo.src.original, desc: `${photo.width} × ${photo.height}` },
-    { label: 'Large 2x', url: photo.src.large2x, desc: '2560px' },
-    { label: 'Large', url: photo.src.large, desc: '1280px' },
-    { label: 'Medium', url: photo.src.medium, desc: '640px' },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top bar */}
@@ -118,7 +111,7 @@ const WallpaperDetailPage = () => {
               <h1 className="text-lg font-semibold text-gray-800">
                 {photo.alt || `Wallpaper #${photo.id}`}
               </h1>
-              <Divider className="my-3" />
+              <hr className="my-3 border-gray-100" />
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
                   <CameraOutlined />
@@ -170,29 +163,8 @@ const WallpaperDetailPage = () => {
             </div>
           </div>
 
-          {/* Right: download options */}
+          {/* Right panel */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5">
-            <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
-              <DownloadOutlined /> Download Sizes
-            </p>
-            <div className="space-y-2">
-              {downloadSizes.map(({ label, url, desc }) => (
-                <button
-                  key={label}
-                  onClick={() => handleDownload(url, label)}
-                  className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-blue-300 hover:bg-blue-50"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">{label}</p>
-                    <p className="text-xs text-gray-400">{desc}</p>
-                  </div>
-                  <DownloadOutlined className="text-blue-500" />
-                </button>
-              ))}
-            </div>
-
-            <Divider className="my-4" />
-
             <a href={photo.url} target="_blank" rel="noreferrer">
               <Button block icon={<LinkOutlined />}>
                 View on Pexels
@@ -203,7 +175,6 @@ const WallpaperDetailPage = () => {
               <Tag color="green" className="w-full text-center">Free to use</Tag>
             </div>
 
-            {/* Full view */}
             <button
               onClick={toggleFullView}
               className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 py-2 text-sm text-gray-500 transition hover:border-gray-300 hover:text-gray-700"
